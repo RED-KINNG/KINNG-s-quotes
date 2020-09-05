@@ -1,60 +1,67 @@
 
-const quoteContainer = document.getELementById('quote-container');
-const quoteText = document.getELementById('quote');
-const authorText = document.getELementById('author');
-const twitterBtn = document.getELementById('twitter');
-const newQuoteBtn = document.getELementById('new-quote');
+const quoteContainer = document.getElementById('quote-container');
+const quoteText = document.getElementById('quote');
+const authorText = document.getElementById('author');
+const twitterBtn = document.getElementById('twitter');
+const newQuoteBtn = document.getElementById('new-quote');
 const loader = document.getElementById('loader');
 
+let allQuotes = [];
 
-function showloadingSpinner() {
+function loading() {
     loader.hidden = false;
     quoteContainer.hidden = true;
 }
 
 
-function removeLoadingSpinner() {
+function complete() {
         if(!loader.hidden){
         quoteContainer.hidden = false;
         loader.hidden = true;
     }
 }
 
+// Show New Quote
+function newQuote() {
+    loading();
+    // Pick a random quote from array
+    const quote = allQuotes[Math.floor(Math.random() * allQuotes.length)];
+    // Check if Author field is blank and replace it with 'Unknown'
+    if (!quote.author) {
+      authorText.textContent = 'Unknown';
+    } else {
+      authorText.textContent = quote.author;
+    }
+    // Check Quote length to determine styling
+    if (quote.text.length > 120) {
+      quoteText.classList.add('long-quote');
+    } else {
+      quoteText.classList.remove('long-quote');
+    }
+    // Set Quote, Hide Loader
+    quoteText.textContent = quote.text;
+    complete();
+  }
+
+
+
+
+
 
 //  Get quote from API
 
-async function getQuote() {
-    showloadingSpinner();
-    const proxyUrl = 'https://desolate-plateau-47523.herokuapp.com/';
-    const apiUrl = 'http://api.forismatic.com/api/1.0/?method=getQuote&lang=en&format=json';
-
+async function getQuotes() {
+    loading();
+    const apiUrl = 'https://type.fit/api/quotes';
     try {
-        const response = await fetch(proxyUrl + apiUrl);
-        const data = await response.jason();
-        // If author is blank, add 'unknown'
-        if(data.quoteAuthor === '') {
-            authorText.innerText = 'Unknown';
-
-        } else {
-            authorText.innerText = data.quoteAuthor;
-        }
-        // Reduce font size for long quotes
-
-       if (data.quoteText.length > 120) {
-           quoteText.classList.add('long-quote');
-       } else{
-           quoteText.classList.remove('long-quote');
-       }
-        quoteText.innerText = data.quoteText;
-        
-        removeLoadingSpinner();
+      const response = await fetch(apiUrl);
+      allQuotes = await response.json();
+      newQuote();
     } catch (error) {
-        getQuote();
-        
+      // Catch Error Here
     }
-
-
-}
+  }
+  
 // Tweet quote
 function tweetQuote() {
     const quote = quoteText.innerText;
@@ -66,10 +73,10 @@ function tweetQuote() {
 
 // Event Listeners for each buttons
 
-newQuoteBtn.addEventListener('click', getQuote);
+newQuoteBtn.addEventListener('click', newQuote);
 twitterBtn.addEventListener('click', tweetQuote);
 
 // On load
 
-getQuote();
+getQuotes();
 
